@@ -1,5 +1,6 @@
 package com.afm.pp.typingdvorakpro.persistencia;
 
+import com.afm.pp.typingdvorakpro.logica.ManejadorDistribuciones;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -7,16 +8,16 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author Felipe Martin
  */
-public class DistribucionTeclado implements InterfaceTeclado{
+public class DistribucionTeclado implements InterfaceArchivoTeclado {
+    public static final String CARPETA = "distros/";
+    public static final String EXTENSION = ".dkb";
+    public static final String SEPARADOR = "-";
     /**
      * Idioma de la distribución de teclado
      * EN - ingles, ES - español
@@ -28,8 +29,8 @@ public class DistribucionTeclado implements InterfaceTeclado{
      */
     private final String nombreDistro;
     private final String rutaArchivo;
-    private boolean tieneArchivo;
     private final List<char []> teclasPrincipales;
+    private final List<char []> teclasSuper;
     /**
      * 
      * @param idioma Idioma de la distribución de teclado
@@ -38,38 +39,46 @@ public class DistribucionTeclado implements InterfaceTeclado{
     public DistribucionTeclado(String idioma, String nombreDistro) {
         this.idioma = idioma;
         this.nombreDistro = nombreDistro;
-        this.rutaArchivo = this.idioma + "-" + this.nombreDistro + ".txt";
-        this.tieneArchivo = false;
+        this.rutaArchivo = DistribucionTeclado.CARPETA + this.idioma + 
+                DistribucionTeclado.SEPARADOR + this.nombreDistro + 
+                DistribucionTeclado.EXTENSION;
         this.teclasPrincipales = new ArrayList<>();
-//        if(tieneArchivo()){
-//            leerArchivo();
-//        } else {
-//            System.out.println("No existe un archivo de la distribución: " 
-//                    + idioma + " " + nombreDistro);
-//        }
+        this.teclasSuper = new ArrayList<>();
+        if(tieneArchivo()){
+            leerArchivo();
+        } else {
+            System.out.println("No existe un archivo de la distribución: " 
+                    + idioma + " " + nombreDistro);
+        }
+    }
+
+    public List<char[]> getTeclasPrincipales() {
+        return teclasPrincipales;
+    }
+
+    public List<char[]> getTeclasSuper() {
+        return teclasSuper;
+    }
+
+    public String getIdioma() {
+        return idioma;
+    }
+
+    public String getNombreDistro() {
+        return nombreDistro;
     }
     
-    public static void main(String[] args) {
-        DistribucionTeclado dvorakPro = new DistribucionTeclado("EN", "dvorakProgrammer");
-        dvorakPro.agregarFilaNormal("[{}(=*)+]!");
-        //super agregarFilaNormal("%7531902468");
-        dvorakPro.agregarFilaNormal(";,.pyfgcrl");
-        dvorakPro.agregarFilaNormal("aoeuidhtns");
-        dvorakPro.agregarFilaNormal("'qjkxbmwvz");
-        
-        dvorakPro.guardarArchivo();
-    }
+    
+    
     @Override
     public boolean tieneArchivo() {
-        if(tieneArchivo == false){
-            File archivo = new File(rutaArchivo);
-            tieneArchivo = archivo.exists();
-        }
-        return tieneArchivo;
+        File archivo = new File(rutaArchivo);    
+        return archivo.exists();
     }
 
     @Override
     public void leerArchivo() {
+        int numLinea = 0;
         try {
             FileReader fr = new FileReader(rutaArchivo);
             BufferedReader br = new BufferedReader(fr);
@@ -77,9 +86,14 @@ public class DistribucionTeclado implements InterfaceTeclado{
             while (linea != null) {
                 linea = linea.trim();
                 
-                agregarFilaNormal(linea);
+                if(numLinea < 4){
+                    agregarFila(linea);
+                } else {
+                    agregarFilaSuper(linea);
+                }
                 
                 linea = br.readLine();
+                numLinea++;
             }
             br.close();
         } catch (IOException n) {
@@ -89,33 +103,44 @@ public class DistribucionTeclado implements InterfaceTeclado{
 
     @Override
     public void guardarArchivo() {
-        String linea;
+        if(tieneArchivo()){
+            System.out.println("Ya existe archivo de la distribución.");
+            return;
+        }
         FileWriter fw;
         try {
             fw = new FileWriter(rutaArchivo, false);
             BufferedWriter bw = new BufferedWriter(fw);
             for (char [] fila: teclasPrincipales) {
-                linea = "";
+                String linea = "";
                 for(char caracter: fila){
                     linea += caracter;
                 }
-                System.out.println(linea);
+                bw.write(linea);
+                bw.newLine();
+            }
+            for (char [] fila: teclasSuper) {
+                String linea = "";
+                for(char caracter: fila){
+                    linea += caracter;
+                }
                 bw.write(linea);
                 bw.newLine();
             }
             System.out.println("Se guardo el archivo.");
             bw.close();
         } catch (IOException ex) {
-            Logger.getLogger(DistribucionTeclado.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("No se pudo guardar el archivo.\nError:\n" + ex.toString());
         }
-            
     }
 
     @Override
-    public void agregarFilaNormal(String fila) {
+    public void agregarFila(String fila) {
         teclasPrincipales.add(fila.toCharArray());
     }
 
-    
-    
+    @Override
+    public void agregarFilaSuper(String fila) {
+        teclasSuper.add(fila.toCharArray());
+    }
 }

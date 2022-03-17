@@ -1,15 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.afm.pp.typingdvorakpro.persistencia;
 
 /**
  *
- * @author Usuario
+ * @author Felipe Martin
  */
-public interface InterfaceTeclado {
+public interface InterfaceArchivoTeclado {
     /**
      * Verifica si existe el archivo
      * @return Valor de verdad sobre la existencia del archivo
@@ -26,5 +21,7 @@ public interface InterfaceTeclado {
     
     void guardarArchivo();
     
-    void agregarFilaNormal(String fila);
+    void agregarFila(String fila);
+    
+    void agregarFilaSuper(String fila);
 }
